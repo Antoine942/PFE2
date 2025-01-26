@@ -31,8 +31,10 @@ def extract_text_from_pdf(file_stream):
 def model_predict(text):
     if not text.strip():
         return "Le document est vide ou illisible."
+        
+    MAX_TOKENS = 512  # ou moins selon ton modèle
 
-    inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=512)
+    inputs = tokenizer(text, truncation=True, max_length=MAX_TOKENS, return_tensors="pt")
 
     model.eval()
     with torch.no_grad():
