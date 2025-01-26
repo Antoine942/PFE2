@@ -1,3 +1,13 @@
+## Accès à l'application
+
+L'application est déployée sur Render et accessible via le lien suivant :
+
+🔗 [Lien vers l'application](https://pfe2-6pkl.onrender.com)
+
+![QR Code pour accéder à l'application](static/qr_code.png)
+
+Vous pouvez scanner ce QR code pour accéder rapidement à l'application depuis un appareil mobile.
+
 # Déploiement d'une Application Flask sur Render
 
 Ce projet consiste à déployer une application Flask permettant la détection de vices de procédure à partir de documents PDF sur la plateforme Render.
@@ -134,16 +144,6 @@ __pycache__/
 3. **Affichage des résultats** :
    - Explication détaillée du résultat.
    - Précision affichée en pourcentage.
-
-## Accès à l'application
-
-L'application est déployée sur Render et accessible via le lien suivant :
-
-🔗 [Lien vers l'application](https://pfe2-6pkl.onrender.com)
-
-![QR Code pour accéder à l'application](static/qr_code.png)
-
-Vous pouvez scanner ce QR code pour accéder rapidement à l'application depuis un appareil mobile.
 
 ## Auteur
 
