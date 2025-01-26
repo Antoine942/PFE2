@@ -25,6 +25,10 @@
             max-width: 600px;
             margin: 0 auto;
             text-align: center;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background-color: white;
+            border-radius: 10px;
         }
         .custom-file-btn {
             display: flex;
@@ -36,7 +40,7 @@
             border-radius: 10px;
             background-color: #f5f5f5;
             cursor: pointer;
-            margin: 10px 0;
+            margin: 20px auto;
         }
         .custom-file-btn img {
             width: 80px;
@@ -45,85 +49,61 @@
         }
         .result {
             margin-top: 20px;
-            padding: 20px;
+            padding: 10px;
             border-radius: 10px;
             background-color: #e9ecef;
             text-align: center;
-            display: none;
+            color: #555;
+            font-size: 14px;
+            font-weight: normal;
+            max-width: 300px ; /* Limite à la largeur du parent */
+            word-wrap: break-word; /* Coupe les mots longs */
+            overflow-wrap: break-word; /* Permet aussi de gérer les textes longs */
+        }
+        button {
+            color: white;
+            background-color: #4CAF50;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        a {
+            text-decoration: none;
+            color: #4CAF50;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        a:hover {
+            color: #45a049;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>
-            <img src="{{ url_for('static', filename='images/loi.png') }}" alt="Logo" style="max-width: 50px;"> JustiScan
+            <img src="../static/loi.png" alt="Logo" style="max-width: 50px;"> JustiScan
         </h1>
-        <form id="pdf-form">
-            <label for="file">Téléchargez un fichier PDF :</label>
-            <input type="file" id="file" accept=".pdf" required hidden>
-            <button type="button" class="custom-file-btn" id="custom-file-btn">
-                <img src="{{ url_for('static', filename='images/PdfDrop.png') }}" alt="Icône PDF">
-            </button>
+        <form method="post" action="/predict" enctype="multipart/form-data">
+            <label for="file" class="custom-file-btn">
+                <img src="../static/PdfDrop.png" alt="Icône PDF">
+            </label>
+            <input type="file" name="pdf_file" id="file" accept="application/pdf" required hidden>
+            <div>
+                <button type="submit" id="submit-button">Soumettre</button>
+                <a href="/" class="reset-button">Reset</a>
+            </div>
         </form>
-        <button id="submit-button">Soumettre</button>
-        <div id="result" class="result"></div>
+        {% if prediction %}
+        <div class="result">
+            <h3>{{ prediction }}</h3>
+        </div>
+        {% endif %}
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js"></script>
-    <script>
-        document.getElementById("custom-file-btn").addEventListener("click", () => {
-            document.getElementById("file").click();
-        });
-
-        document.getElementById("submit-button").addEventListener("click", async (event) => {
-            event.preventDefault();
-
-            const fileInput = document.getElementById("file");
-            const file = fileInput.files[0];
-
-            if (!file) {
-                alert("Veuillez sélectionner un fichier PDF.");
-                return;
-            }
-
-            try {
-                const text = await extractTextFromPDF(file);
-                const response = await fetch("/predict", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ text }),
-                });
-                const result = await response.json();
-
-                const resultDiv = document.getElementById("result");
-                resultDiv.style.display = "block";
-
-                if (result.error) {
-                    resultDiv.innerHTML = `<h2 class="error">Erreur :</h2><p>${result.error}</p>`;
-                } else {
-                    resultDiv.innerHTML = `
-                        <h2>Résultat :</h2>
-                        <p><strong>${result.result_message}</strong></p>
-                        <p><strong>Confiance :</strong> ${(result.confidence * 100).toFixed(2)}%</p>
-                    `;
-                }
-            } catch (error) {
-                alert("Une erreur s'est produite.");
-            }
-        });
-
-        async function extractTextFromPDF(file) {
-            const arrayBuffer = await file.arrayBuffer();
-            const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
-            let text = "";
-
-            for (const page of pdfDoc.getPages()) {
-                const content = await page.getTextContent?.();
-                text += content ?? "";
-            }
-
-            return text;
-        }
-    </script>
 </body>
 </html>

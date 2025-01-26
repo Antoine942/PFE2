@@ -1,13 +1,10 @@
-from flask import Flask, request, render_template, jsonify
+from flask import Flask, render_template, request, jsonify
+from PyPDF2 import PdfReader
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
-import os
-import tempfile
-
-app = Flask(__name__)
 
 # Charger le modèle et le tokenizer fine-tuné
-model_path = "./legal_bert_model"  # Chemin vers le modèle fine-tuné
+model_path = "./legal_bert_model"
 tokenizer = AutoTokenizer.from_pretrained(model_path)
 model = AutoModelForSequenceClassification.from_pretrained(model_path)
 
@@ -19,51 +16,52 @@ class_mapping = {
     3: "Le document est une notification sans vice de procédure."
 }
 
-# Fonction pour faire une prédiction sur un texte
-def predict(text):
-    inputs = tokenizer(text, return_tensors="pt", padding="max_length", truncation=True, max_length=512)
+
+# Fonction pour extraire le texte d'un PDF
+def extract_text_from_pdf(file_stream):
+    reader = PdfReader(file_stream)
+    text = ""
+    for page in reader.pages:
+        text += page.extract_text() + "\n"
+    return text
+
+
+# Fonction pour effectuer la prédiction
+def model_predict(text):
+    if not text.strip():
+        return "Le document est vide ou illisible."
+
+    inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=512)
+
+    model.eval()
     with torch.no_grad():
         outputs = model(**inputs)
+        predictions = torch.argmax(outputs.logits, dim=-1).item()
 
-    # Calculer les probabilités pour chaque classe
-    probs = torch.nn.functional.softmax(outputs.logits, dim=-1)
-    prediction = torch.argmax(probs, dim=-1).item()
+    return class_mapping.get(predictions, "Classe inconnue")
 
-    # Utiliser le dictionnaire pour retourner un message explicite
-    result_message = class_mapping.get(prediction, "Le type de document est inconnu.")
 
-    # Obtenir la probabilité pour la classe prédite
-    confidence = probs[0][prediction].item()
+# Initialiser Flask
+app = Flask(__name__)
 
-    return result_message, confidence, probs[0].tolist()
 
-# Route pour afficher la page HTML
-@app.route('/')
-def index():
-    return render_template('index.html')
+@app.route("/")
+def home():
+    return render_template("index.html")
 
-# Route pour recevoir le texte extrait et effectuer la prédiction
+
 @app.route('/predict', methods=['POST'])
-def predict_text():
-    data = request.get_json()
+def predict():
+    pdf_file = request.files.get('pdf_file')  # Récupérer le fichier PDF
 
-    if not data or 'text' not in data:
-        return jsonify({"error": "Aucun texte reçu."}), 400
+    if pdf_file:
+        # Extraire le texte directement depuis le fichier en mémoire
+        text = extract_text_from_pdf(pdf_file.stream)
+        prediction = model_predict(text)
+        return render_template("index.html", prediction=prediction)
+    else:
+        return render_template("index.html", prediction="Aucun fichier PDF fourni.")
 
-    text = data['text']
-
-    if not text.strip():
-        return jsonify({"error": "Le texte fourni est vide."}), 400
-
-    # Faire la prédiction sur le texte fourni
-    result_message, confidence, all_confidences = predict(text)
-
-    return jsonify({
-        "result_message": result_message,
-        "confidence": confidence,  # Probabilité pour la classe prédite
-        "all_confidences": all_confidences,  # Probabilités pour toutes les classes
-        "confidence_explanation": "Le score de confiance représente la probabilité que le modèle attribue à la classe prédite. Plus ce score est élevé, plus le modèle est certain de sa prédiction."
-    })
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)), debug=True)
+    app.run(host="0.0.0.0", port=8080, debug=True)
