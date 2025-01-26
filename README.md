@@ -1,8 +1,6 @@
 ## Accès à l'application
 
-L'application est déployée sur Render et accessible via le lien suivant :
-
-🔗 [Lien vers l'application](https://pfe2-6pkl.onrender.com)
+L'application est déployée sur Render et accessible via le lien suivant : 🔗 [Lien vers l'application](https://pfe2-6pkl.onrender.com)
 
 <p align="center">
   <img src="static/qr_code.png" alt="QR Code pour accéder à l'application">
