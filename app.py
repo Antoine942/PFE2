@@ -6,8 +6,9 @@ import torch
 # Charger le modèle et le tokenizer fine-tuné
 model_path = "./legal_bert_model"
 tokenizer = AutoTokenizer.from_pretrained(model_path)
-model = AutoModelForSequenceClassification.from_pretrained(model_path)
-
+model = AutoModelForSequenceClassification.from_pretrained(
+    "bert-base-uncased", device_map="cpu"  # Force l'utilisation du CPU
+)
 # Dictionnaire pour mapper les classes aux messages explicites
 class_mapping = {
     0: "Le document est une assignation et il y a un vice de procédure.",
