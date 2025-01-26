@@ -8,6 +8,7 @@ L'application est déployée sur Render et accessible via le lien suivant : 🔗
 
 Vous pouvez scanner ce QR code pour accéder rapidement à l'application depuis un appareil mobile.
 
+
 # Déploiement d'une Application Flask sur Render
 
 Ce projet consiste à déployer une application Flask permettant la détection de vices de procédure à partir de documents PDF sur la plateforme Render.
